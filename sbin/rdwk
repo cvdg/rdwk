@@ -1,0 +1,264 @@
+#!/bin/bash
+#
+# Project:      rdwk - Roadwork
+# Repository:   https://github.com/cvdg/rdwk/
+# Date:         2017-05-20
+#
+# Author:       Cees van de Griend <c.vande.griend@gmail.com>
+# Copyright:    (c) 2017 C.A. van de Griend
+#
+# Description:  Backup files with rsync to a central host.
+#
+
+
+if [ ${EUID} -ne 0 ] ; then
+    echo "You're not root"
+    exit 1
+fi
+
+
+RDWK_PID="${BASHPID}"
+RDWK_DATDIR="/var/opt/rdwk/dat"
+RDWK_LOGDIR="/var/opt/rdwk/log"
+RDWK_RUNDIR="/var/opt/rdwk/run"
+
+RDWK_LOCKFILE="${RDWK_RUNDIR}/rdwk.lock"
+
+# $gpg2 --list-keys 'Backup 2017'
+# pub   2048R/5ABEDEF7 2017-05-15 [expires: 2018-01-31]
+# uid       [ultimate] Cees van de Griend (Backup 2017) <c.vande.griend@gmail.com>
+# sub   2048R/C938EA08 2017-05-15 [expires: 2018-01-31]
+RDWK_GPG_KEY="0x5ABEDEF7"
+
+
+
+
+if [ ! -d ${RDWK_DATDIR} ] ; then
+    mkdir -p ${RDWK_DATDIR}
+fi
+
+if [ ! -d ${RDWK_DATLOG} ] ; then
+    mkdir -p ${RDWK_DATLOG}
+fi
+
+if [ ! -d ${RDWK_DATRUN} ] ; then
+    mkdir -p ${RDWK_DATRUN}
+fi
+
+
+
+function rdwk_log {
+    DATE=$(date '+%Y%m%d')
+    DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
+
+    echo "${DATETIME} rdwk[${RDWK_PID}] $*" >> ${RDWK_LOGDIR}/rdwk-${DATE}.log
+}
+
+
+
+function rdwk_unlock {
+    rdwk_log "unlock"
+
+    rm -f ${RDWK_LOCKFILE}
+}
+
+
+
+function rdwk_lock {
+    rdwk_log "lock"
+
+    if [ -f ${RDWK_LOCKFILE} ] ; then
+        rdwk_log "Error: lockfile ${RDWK_LOCKFILE} exists"
+        exit 1
+    fi
+
+    echo ${RDWK_PID} > ${RDWK_LOCKFILE}
+}
+
+
+
+
+function rdwk_level0 {
+    rdwk_log "level0 $*"
+
+    HOST=$1
+    DATE=$(date '+%Y%m%d')
+
+    cd /srv/backup
+
+    find ${HOST} -type f > ${RDWK_DATDIR}/${HOST}-${DATE}-0.lst
+
+    if [ -s ${RDWK_DATDIR}/${HOST}-${DATE}-0.lst ] ; then
+        /bin/gzip --force --quiet ${RDWK_DATDIR}/${HOST}-${DATE}-0.lst
+
+        /bin/zcat ${RDWK_DATDIR}/${HOST}-${DATE}-0.lst.gz \
+        | /bin/cpio --create --quiet \
+        | /usr/bin/gpg2 --encrypt --recipient ${RDWK_GPG_KEY} \
+        > ${RDWK_DATDIR}/${HOST}-${DATE}-0.cpio.gpg
+
+        /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.0
+    else
+        rm ${RDWK_DATDIR}/${HOST}-${DATE}-0.lst
+    fi
+}
+
+
+
+function rdwk_level1 {
+    rdwk_log "level1 $*"
+
+    HOST=$1
+    DATE=$(date '+%Y%m%d')
+
+    cd /srv/backup
+
+    if [ ! -f ${RDWK_RUNDIR}/${HOST}.0 ] ; then
+        rdwk_log "Error: file ${RDWK_RUNDIR}/${HOST}.0 does not exists"
+        exit 1
+    fi
+
+    find ${HOST} -type f -newer ${RDWK_RUNDIR}/${HOST}.0 > ${RDWK_DATDIR}/${HOST}-${DATE}-1.lst
+
+    if [ -s ${RDWK_DATDIR}/${HOST}-${DATE}-1.lst ] ; then
+        /bin/gzip --force --quiet ${RDWK_DATDIR}/${HOST}-${DATE}-1.lst
+
+        /bin/zcat ${RDWK_DATDIR}/${HOST}-${DATE}-1.lst.gz \
+        | /bin/cpio --create --quiet \
+        | /usr/bin/gpg2 --encrypt --recipient ${RDWK_GPG_KEY} \
+        > ${RDWK_DATDIR}/${HOST}-${DATE}-1.cpio.gpg
+
+        /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.1
+    else
+        rm ${RDWK_DATDIR}/${HOST}-${DATE}-1.lst
+    fi
+}
+
+
+
+function rdwk_level2 {
+    rdwk_log "level2 $*"
+
+    HOST=$1
+    DATE=$(date '+%Y%m%d')
+
+    cd /srv/backup
+
+    if [ ! -f ${RDWK_RUNDIR}/${HOST}.1 ] ; then
+        rdwk_log "Error: file ${RDWK_RUNDIR}/${HOST}.1 does not exists"
+        exit 1
+    fi
+
+    find ${HOST} -type f -newer ${RDWK_RUNDIR}/${HOST}.1 > ${RDWK_DATDIR}/${HOST}-${DATE}-2.lst
+
+    if [ -s ${RDWK_DATDIR}/${HOST}-${DATE}-2.lst ] ; then
+        /bin/gzip --force --quiet ${RDWK_DATDIR}/${HOST}-${DATE}-2.lst
+
+        /bin/zcat ${RDWK_DATDIR}/${HOST}-${DATE}-2.lst.gz \
+        | /bin/cpio --create --quiet \
+        | /usr/bin/gpg2 --encrypt --recipient ${RDWK_GPG_KEY} \
+        > ${RDWK_DATDIR}/${HOST}-${DATE}-2.cpio.gpg
+
+        /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.2
+    else
+        rm ${RDWK_DATDIR}/${HOST}-${DATE}-2.lst
+    fi
+}
+
+
+function rdwk_level3 {
+    rdwk_log "level3 $*"
+
+    HOST=$1
+    DATE=$(date '+%Y%m%d')
+
+    cd /srv/backup
+
+    if [ ! -f ${RDWK_RUNDIR}/${HOST}.2 ] ; then
+        rdwk_log "Error: file ${RDWK_RUNDIR}/${HOST}.2 does not exists"
+        exit 1
+    fi
+
+    find ${HOST} -type f -newer ${RDWK_RUNDIR}/${HOST}.2 > ${RDWK_DATDIR}/${HOST}-${DATE}-3.lst
+
+    if [ -s ${RDWK_DATDIR}/${HOST}-${DATE}-3.lst ] ; then
+        /bin/gzip --force --quiet ${RDWK_DATDIR}/${HOST}-${DATE}-3.lst
+        /bin/zcat ${RDWK_DATDIR}/${HOST}-${DATE}-3.lst.gz \
+        | /bin/cpio --create --quiet \
+        | /usr/bin/gpg2 --encrypt --recipient ${RDWK_GPG_KEY} \
+        > ${RDWK_DATDIR}/${HOST}-${DATE}-3.cpio.gpg
+
+        /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.3
+    else
+        rm ${RDWK_DATDIR}/${HOST}-${DATE}-3.lst
+    fi
+}
+
+
+
+function rdwk_maintenance {
+    rdwk_log "maintenance"
+
+    find /var/opt/rdwk/log -type f -ctime +1 -name '*.log' -exec gzip {} \;
+}
+
+
+
+#
+# Main
+#
+rdwk_log "start rdwk"
+rdwk_lock
+
+trap rdwk_unlock EXIT
+
+
+
+case $1 in
+    full)
+        for HOST_DIR in /srv/backup/* ; do
+            if [ -d ${HOST_DIR} ] ; then
+                HOST=$(basename ${HOST_DIR})
+
+                rdwk_level0 ${HOST}
+            fi
+        done
+        ;;
+    monthly)
+        for HOST_DIR in /srv/backup/* ; do
+            if [ -d ${HOST_DIR} ] ; then
+                HOST=$(basename ${HOST_DIR})
+
+                rdwk_level1 ${HOST}
+            fi
+        done
+        ;;
+    weekly)
+        for HOST_DIR in /srv/backup/* ; do
+            if [ -d ${HOST_DIR} ] ; then
+                HOST=$(basename ${HOST_DIR})
+
+                rdwk_level2 ${HOST}
+            fi
+        done
+        ;;
+    daily)
+        for HOST_DIR in /srv/backup/* ; do
+            if [ -d ${HOST_DIR} ] ; then
+                HOST=$(basename ${HOST_DIR})
+
+                rdwk_level3 ${HOST}
+            fi
+        done
+        ;;
+    *)
+        echo "Usage: $0 [full|monthly|weekly|daily]"
+        exit 1
+        ;;
+esac
+
+
+
+rdwk_maintenance
+rdwk_log "finish"
+
+exit 0
