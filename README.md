@@ -1,7 +1,7 @@
 # rdwk: Roadwork - Backup software
 
 Everybody has his own backup solution.
-Why should I be different?
+Why should I be any different?
 
 ## To Do
 

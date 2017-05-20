@@ -1,0 +1,9 @@
+#
+# rdwk excudes file
+#
+# Save as: ${HOME}/.rdwk.excludes
+#
+.cache/
+prj/
+tmp/
+Vault/

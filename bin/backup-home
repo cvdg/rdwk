@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# Project:      rdwk - Roadwork
+# Repository:   https://github.com/cvdg/rdwk/
+# Date:         2017-05-20
+#
+# Author:       Cees van de Griend <c.vande.griend@gmail.com>
+# Copyright:    (c) 2017 C.A. van de Griend
+#
+# Description:  Backup files with rsync to a central host.
+#
+
+SRC_HOST=$(hostname -s)
+DST_HOST="rpia0008101"
+
+EXCLUDE_OPT=""
+
+if [ -f ${HOME}/.rdwk.excludes ] ; then
+    EXCLUDE_OPT="--exclude-from ${HOME}/.rdwk.excludes"
+fi
+
+echo "rsync -av --delete ${EXCLUDE_OPT} ${HOME}/ ${DST_HOST}:/srv/backup/${SRC_HOST}${HOME}"
+rsync -av --delete ${EXCLUDE_OPT} ${HOME}/ ${DST_HOST}:/srv/backup/${SRC_HOST}${HOME}
