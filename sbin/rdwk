@@ -37,12 +37,12 @@ if [ ! -d ${RDWK_DATDIR} ] ; then
     mkdir -p ${RDWK_DATDIR}
 fi
 
-if [ ! -d ${RDWK_DATLOG} ] ; then
-    mkdir -p ${RDWK_DATLOG}
+if [ ! -d ${RDWK_LOGDIR} ] ; then
+    mkdir -p ${RDWK_LOGDIR}
 fi
 
-if [ ! -d ${RDWK_DATRUN} ] ; then
-    mkdir -p ${RDWK_DATRUN}
+if [ ! -d ${RDWK_RUNDIR} ] ; then
+    mkdir -p ${RDWK_RUNDIR}
 fi
 
 

@@ -1,5 +1,13 @@
 # Restore
 
+
+Restore is only possible if you have the secret part of the GPG key which
+was used for encrypting the archive.
+
+If you don't have the secret GPG key, I wish you good luck!
+
+
+
 ```
 cd ~/tmp
 $ gpg2 -d /var/opt/rdwk/dat/lina0017872-20170520-1.cpio.gpg | cpio -i -v -d
