@@ -182,7 +182,7 @@ function rdwk_level3 {
 
     if [ ! -f ${RDWK_RUNDIR}/${HOST}.2 ] ; then
         rdwk_log "Info: file ${RDWK_RUNDIR}/${HOST}.2 does not exist"
-        rdwk_level2 $*
+        rdwk_level0 $*
     else
         NEWER=$(/bin/ls -t ${RDWK_RUNDIR}/${HOST}.[012] | /usr/bin/head -n 1)
 
