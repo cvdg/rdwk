@@ -95,6 +95,10 @@ function rdwk_level0 {
         > ${RDWK_DATDIR}/${HOST}-${DATE}-0.cpio.gpg
 
         /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.0
+        /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.1
+        /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.2
+    else
+        rdwk_log "Info: nothing to do"
     fi
 
     /bin/rm -f ${RDWK_DATDIR}/${HOST}-${DATE}-0.lst
@@ -124,6 +128,9 @@ function rdwk_level1 {
             > ${RDWK_DATDIR}/${HOST}-${DATE}-1.cpio.gpg
 
             /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.1
+            /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.2
+        else
+            rdwk_log "Info: nothing to do"
         fi
 
         /bin/rm -f ${RDWK_DATDIR}/${HOST}-${DATE}-1.lst
@@ -142,7 +149,7 @@ function rdwk_level2 {
 
     if [ ! -f ${RDWK_RUNDIR}/${HOST}.1 ] ; then
         rdwk_log "Info: file ${RDWK_RUNDIR}/${HOST}.1 does not exist"
-        rdwk_level1 $*
+        rdwk_level0 $*
     else
         NEWER=$(/bin/ls -t ${RDWK_RUNDIR}/${HOST}.[01] | /usr/bin/head -n 1)
 
@@ -156,6 +163,8 @@ function rdwk_level2 {
             > ${RDWK_DATDIR}/${HOST}-${DATE}-2.cpio.gpg
     
             /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.2
+        else
+            rdwk_log "Info: nothing to do"
         fi
     
         /bin/rm -f ${RDWK_DATDIR}/${HOST}-${DATE}-2.lst
@@ -186,7 +195,9 @@ function rdwk_level3 {
             | /usr/bin/gpg2 --encrypt --recipient ${RDWK_GPG_KEY} \
             > ${RDWK_DATDIR}/${HOST}-${DATE}-3.cpio.gpg
     
-            /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.3
+            # /usr/bin/touch ${RDWK_RUNDIR}/${HOST}.3
+        else
+            rdwk_log "Info: nothing to do"
         fi
     
         /bin/rm -f ${RDWK_DATDIR}/${HOST}-${DATE}-3.lst

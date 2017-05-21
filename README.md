@@ -6,5 +6,6 @@ Why should I be any different?
 ## To Do
 
 * `rsync` files to central host
-* `tar | gpg` files on central host and store the encrypt archive on a external USB harddisk
-* store a external USB harddisk offsite
+* `find | cpio | gpg` files on central host to archive and encrypt the files on the central host
+* store encrypted archive on an extrernal USB harddisk and store the USB hardisk on a remote location
+* (optinal) store encrypted archive on a remote host
