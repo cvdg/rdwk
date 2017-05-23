@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Project:      rdwk - Roadwork
+# Repository:   https://github.com/cvdg/rdwk/
+# Date:         2017-05-23
+#
+# Author:       Cees van de Griend <c.vande.griend@gmail.com>
+# Copyright:    (c) 2017 C.A. van de Griend
+#
+# Description:  Install as: /etc/cron.daily/rdwk
+#
+
+# Sanity check, is Roadwork installed?
+if [ -x /opt/rdwk/sbin/rdwk ] ; then
+    LEVEL="unknown"
+    MONTHDAY=$(/bin/date +%d)
+    WEEKDAY=$(/bin/date +%w)
+
+    # First day of the month?
+    if [ ${MONTHDAY} -eq 1 ] ; then
+        LEVEL="monthly"
+    # Sunday?
+    elif [ ${WEEKDAY} -eq 0 ] ; then
+        LEVEL="weekly"
+    # Nornal day.
+    else
+        LEVEL="daily"
+    fi
+
+    /opt/rdwk/sbin/rdwk ${LEVEL}
+fi

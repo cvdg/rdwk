@@ -15,3 +15,7 @@ uid       [  full  ] Cees van de Griend (Backup 2017) <c.vande.griend@gmail.com>
 sub   2048R/C938EA08 2017-05-15 [expires: 2018-01-31]
 
 ```
+
+```
+# cp doc/rdwk-cron /etc/cron.daily/rdwk
+```
