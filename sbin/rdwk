@@ -9,6 +9,9 @@
 #
 # Description:  Archive and encrypt files.
 #
+# ChangeLog:    20170618
+#               - Fixed location of the large data files
+#
 
 
 if [ ${EUID} -ne 0 ] ; then
@@ -18,13 +21,14 @@ fi
 
 
 RDWK_PID="${BASHPID}"
-RDWK_DATDIR="/var/opt/rdwk/dat"
+# RDWK_DATDIR="/var/opt/rdwk/dat"
+RDWK_DATDIR="/srv/rdwk"
 RDWK_LOGDIR="/var/opt/rdwk/log"
 RDWK_RUNDIR="/var/opt/rdwk/run"
 
 RDWK_LOCKFILE="${RDWK_RUNDIR}/rdwk.lock"
 
-# $gpg2 --list-keys 'Backup 2017'
+# $ gpg2 --list-keys 'Backup 2017'
 # pub   2048R/5ABEDEF7 2017-05-15 [expires: 2018-01-31]
 # uid       [ultimate] Cees van de Griend (Backup 2017) <c.vande.griend@gmail.com>
 # sub   2048R/C938EA08 2017-05-15 [expires: 2018-01-31]
